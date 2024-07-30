@@ -367,10 +367,6 @@ def send_email_to_officer():
 
 import requests
 
-import logging
-
-logger = logging.getLogger(__name__)
-
 @never_cache
 @login_required
 def handle_uploaded_document(request, template_name, department_name):
@@ -382,6 +378,7 @@ def handle_uploaded_document(request, template_name, department_name):
             doc_type = request.POST.get('doc_type', '')
             new_filename = f"{doc_type}_{user_email}.pdf"
 
+            # Define the directory for user documents
             user_directory = os.path.join(settings.MEDIA_ROOT, 'Documents', 'user')
             if not os.path.exists(user_directory):
                 os.makedirs(user_directory)
@@ -390,10 +387,10 @@ def handle_uploaded_document(request, template_name, department_name):
             document.title = new_filename
             document.issuer_email = user_email
             document.department = department_name
-
             document.save()
 
             try:
+                # Process the document
                 response = process_document(request, document)
                 if response.status_code == 200:
                     response_data = response.json()
@@ -403,28 +400,13 @@ def handle_uploaded_document(request, template_name, department_name):
                         message = 'The PDF is successfully uploaded but processing failed.'
                 else:
                     message = 'The PDF is successfully uploaded but processing could not be completed.'
-                
-                # Log request to email notifications
-                logger.info('Sending email notifications for department: %s', department_name)
-                
-                email_response = requests.post(
-                    'https://faraidverification-c2463c71ec9b.herokuapp.com/send-email-notifications/',
-                    data={'department_name': department_name}
-                )
-                
-                # Log the email response
-                logger.info('Email notifications response status: %d', email_response.status_code)
-                logger.info('Email notifications response body: %s', email_response.text)
-                
-                if email_response.status_code == 200:
-                    email_response_data = email_response.json()
-                    if email_response_data['success']:
-                        message += ' Notifications sent successfully.'
-                    else:
-                        message += ' Notifications sent but there was an issue.'
-                else:
-                    message += ' Notifications could not be processed.'
 
+                # Retrieve the list of uploaded document names
+                document_names = OfficerDocument.objects.values_list('pdf_file', flat=True)
+
+                # Send email with the list of document names
+                send_document_list_email(document_names)
+                
             except Exception as e:
                 message = f'The PDF is successfully uploaded but there was an error: {str(e)}'
                 if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -447,40 +429,18 @@ def handle_uploaded_document(request, template_name, department_name):
         form = DocumentForm()
         return render(request, template_name, {'form': form})
 
+def send_document_list_email(document_names):
+    subject = 'List of Uploaded Documents'
+    message = 'The following documents have been uploaded:\n\n'
+    message += '\n'.join(document_names)
 
-#---------------__TEST__-------------#
-@never_cache
-@login_required
-def send_email_notifications(request):
-    if request.method == 'POST':
-        department_name = request.POST.get('department_name')
-        if not department_name:
-            return JsonResponse({'success': False, 'message': 'Department name is required.'}, status=400)
-
-        # Retrieve email addresses of officers in the department
-        officer_emails = UserRole.objects.filter(role='Officer', department=department_name).values_list('user__email', flat=True)
-        
-        if not officer_emails:
-            return JsonResponse({'success': False, 'message': 'No emails found for the department.'}, status=404)
-
-        try:
-            subject = f'New Document Submission in {department_name}'
-            message = 'A new document has been submitted and processed. Please review it at your earliest convenience.'
-            from_email = settings.DEFAULT_FROM_EMAIL
-            
-            send_mail(
-                subject,
-                message,
-                from_email,
-                officer_emails,
-                fail_silently=False,
-            )
-
-            return JsonResponse({'success': True, 'message': 'Email notifications sent successfully.'})
-        except Exception as e:
-            return JsonResponse({'success': False, 'message': str(e)}, status=500)
-
-    return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=405)
+    send_mail(
+        subject,
+        message,
+        settings.DEFAULT_FROM_EMAIL,  # Replace with your email from settings
+        ['unlucky139913@gmail.com'],  # Replace with the officer's email
+        fail_silently=False,
+    )
 
 def get_officer_emails(department_name):
     # Placeholder function to retrieve officer emails based on department
