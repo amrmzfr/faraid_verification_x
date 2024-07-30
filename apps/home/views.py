@@ -392,13 +392,24 @@ def handle_uploaded_document(request, template_name, department_name):
             # Send email notification to officers of the relevant department
             notify_officers(department_name)
 
-            return JsonResponse({'success': True, 'message': 'The PDF is successfully uploaded.'})
-        else:
-            errors = form.errors.as_json()
-            return JsonResponse({'success': False, 'errors': errors}, status=400)
+            # For AJAX requests, return a JSON response
+            if request.is_ajax():
+                return JsonResponse({'success': True, 'message': 'The PDF is successfully uploaded.'})
 
-    form = DocumentForm()
-    return render(request, template_name, {'form': form})
+            # Redirect back to the same page for non-AJAX requests
+            return redirect(request.path_info)
+        else:
+            # For AJAX requests, return a JSON response with errors
+            if request.is_ajax():
+                errors = form.errors.as_json()
+                return JsonResponse({'success': False, 'errors': errors}, status=400)
+
+            # For non-AJAX requests, return the form with errors
+            return render(request, template_name, {'form': form})
+
+    else:
+        form = DocumentForm()
+        return render(request, template_name, {'form': form})
 
 
 #---------------__TEST__-------------#
