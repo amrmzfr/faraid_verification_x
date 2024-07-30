@@ -19,7 +19,7 @@ urlpatterns = [
     path('view-document/<int:document_id>/', views.view_document, name='view_document'),
     path('officer-documents/', views.officer_documents_view, name='officer_documents'),
     path('verification/', views.verification_page, name='verification_page'),
-    
+    path('send-email-notifications/', views.send_email_notifications, name='send_email_notifications'),
 
     # Officer Actions
     path('officer-dashboard/', views.officer_dashboard_view, name='officer_dashboard'),

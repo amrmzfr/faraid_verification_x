@@ -532,7 +532,12 @@ def jpj_view(request):
 @never_cache
 @login_required
 def process_document(request, document):
-    normalized_text, hashed_text = process_pdf(document.pdf_file)
-    document.normalized_text = normalized_text
-    document.hashed_text = hashed_text
-    document.save()
+    try:
+        normalized_text, hashed_text = process_pdf(document.pdf_file)
+        document.normalized_text = normalized_text
+        document.hashed_text = hashed_text
+        document.save()
+
+        return JsonResponse({'success': True, 'message': 'Document processed successfully.'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=500)
