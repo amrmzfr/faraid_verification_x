@@ -389,7 +389,8 @@ def handle_uploaded_document(request, template_name, department_name):
             document.save()
             process_document(request, document)
 
-            send_email_to_officer()
+            # Send email notification to officers of the relevant department
+            notify_officers(department_name)
 
             return JsonResponse({'success': True, 'message': 'The PDF is successfully uploaded.'})
         else:
