@@ -399,6 +399,22 @@ def handle_uploaded_document(request, template_name, department_name):
     form = DocumentForm()
     return render(request, template_name, {'form': form})
 
+
+#---------------__TEST__-------------#
+def notify_officers(department_name):
+    # Get all officers from the relevant department
+    officers = UserRole.objects.filter(role='Officer', department=department_name)
+    officer_emails = [officer.user.email for officer in officers]
+
+    # Send notification email to officers
+    send_mail(
+        subject='New Document Uploaded',
+        message='You have a new file to verify.',
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=officer_emails,
+        fail_silently=False,
+    )
+
     
 @never_cache
 @login_required
@@ -419,18 +435,8 @@ def compare_all_documents(request, issuer_email):
 
     for index, doc in enumerate(pending_documents, start=1):
         off_doc = officer_docs_dict.get(doc.title)
-        status = "Mismatch"
-
-        if off_doc:
-            doc_hash = doc.hashed_text.strip()  # Strip any whitespace
-            off_doc_hash = off_doc.hashed_text.strip()  # Strip any whitespace
-            if doc_hash == off_doc_hash:
-                status = "Match"
-
-            print(f"Document Title: {doc.title}")
-            print(f"Pending Document Hash: '{doc_hash}'")
-            print(f"Officer Document Hash: '{off_doc_hash}'")
-
+        status = "Match" if off_doc and doc.hashed_text == off_doc.hashed_text else "Mismatch"
+        
         comparison_results.append({
             'number': index,
             'title': doc.title,
@@ -438,6 +444,7 @@ def compare_all_documents(request, issuer_email):
             'hash_value': doc.hashed_text,
             'comparison_status': status,
         })
+
     return render(request, 'home/verify_document.html', {'issuer_email': issuer_email, 'comparison_results': comparison_results})
 
 

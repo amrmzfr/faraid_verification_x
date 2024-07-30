@@ -156,3 +156,11 @@ DROPBOX_SIGN_API_KEY = '2e684460fda4a69c81b191865a382ee73056c057b8c1b77df40778dc
 
 GMAIL_API_KEY        = 'AIzaSyCibyLO2-cmjFcI0ZVQFNZP568_8vGjvDw'
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'        # Replace with your SMTP server
+EMAIL_PORT = 587                       # Typically 587 for TLS or 465 for SSL
+EMAIL_USE_TLS = True                  # Use TLS (True for security, False otherwise)
+EMAIL_USE_SSL = False                 # Use SSL (True for SSL, False for no SSL)
+EMAIL_HOST_USER = 'unlucky139913@gmail.com'   # Your email address
+EMAIL_HOST_PASSWORD = 'rnwe gitd wduq fwca'   # Your email password
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER    # Default from email address
