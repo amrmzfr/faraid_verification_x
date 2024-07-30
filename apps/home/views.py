@@ -257,15 +257,66 @@ def signature_completed(request):
     if request.method == 'POST':
         data = json.loads(request.body)
         signature_request_id = data['signature_request_id']
-        service = DropboxSignService()
-        signed_document = service.get_signed_document(signature_request_id)
-
         issuer_email = data['issuer_email']
+        
+        # Create instance of DropboxSignService
+        service = DropboxSignService()
+        
+        # Get signed document
+        signed_document = service.get_signed_document(signature_request_id)
+        
+        # Send signed document to the issuer
         send_signed_document_to_issuer(issuer_email, signed_document)
+
+        # Get the comparison results
+        comparison_results = compare_documents(issuer_email)
+        
+        # Send comparison results to the client
+        send_comparison_results_email(issuer_email, comparison_results)
 
         return JsonResponse({'status': 'success'})
     return JsonResponse({'status': 'invalid method'}, status=405)
 
+def compare_documents(issuer_email):
+    """Compare all documents and return results."""
+    pending_documents = Document.objects.filter(issuer_email=issuer_email)
+    officer_documents = OfficerDocument.objects.filter(client_email=issuer_email)
+
+    comparison_results = []
+    officer_docs_dict = {doc.title: doc for doc in officer_documents}
+
+    for index, doc in enumerate(pending_documents, start=1):
+        off_doc = officer_docs_dict.get(doc.title)
+        status = "Match" if off_doc and doc.hashed_text == off_doc.hashed_text else "Mismatch"
+        
+        comparison_results.append({
+            'number': index,
+            'title': doc.title,
+            'status': doc.status,
+            'hash_value': doc.hashed_text,
+            'comparison_status': status,
+        })
+
+    return comparison_results
+
+def send_comparison_results_email(client_email, comparison_results):
+    """Send comparison results to client."""
+    subject = "Document Comparison Results"
+    message = "The document comparison results are as follows:\n\n"
+    
+    for result in comparison_results:
+        message += f"Document {result['number']}: {result['title']}\n"
+        message += f"Status: {result['status']}\n"
+        message += f"Hash Value: {result['hash_value']}\n"
+        message += f"Comparison Status: {result['comparison_status']}\n\n"
+
+    send_mail(
+        subject,
+        message,
+        'from@example.com',  # Replace with your email
+        [client_email],
+        fail_silently=False,
+    )
 
 def send_signed_document_to_issuer(email, signed_document):
     subject = "Your Document has been Signed"
@@ -279,7 +330,6 @@ def send_signed_document_to_issuer(email, signed_document):
         html_message="<p>The document has been successfully signed and is attached.</p>",
         attachments=[('signed_document.pdf', signed_document, 'application/pdf')],
     )
-
 
 # ------------------------ DOCUMENT HANDLING VIEWS ------------------------ #
 
