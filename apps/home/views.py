@@ -419,8 +419,18 @@ def compare_all_documents(request, issuer_email):
 
     for index, doc in enumerate(pending_documents, start=1):
         off_doc = officer_docs_dict.get(doc.title)
-        status = "Match" if off_doc and doc.hashed_text == off_doc.hashed_text else "Mismatch"
-        
+        status = "Mismatch"
+
+        if off_doc:
+            doc_hash = doc.hashed_text.strip()  # Strip any whitespace
+            off_doc_hash = off_doc.hashed_text.strip()  # Strip any whitespace
+            if doc_hash == off_doc_hash:
+                status = "Match"
+
+            print(f"Document Title: {doc.title}")
+            print(f"Pending Document Hash: '{doc_hash}'")
+            print(f"Officer Document Hash: '{off_doc_hash}'")
+
         comparison_results.append({
             'number': index,
             'title': doc.title,
@@ -428,7 +438,6 @@ def compare_all_documents(request, issuer_email):
             'hash_value': doc.hashed_text,
             'comparison_status': status,
         })
-
     return render(request, 'home/verify_document.html', {'issuer_email': issuer_email, 'comparison_results': comparison_results})
 
 
