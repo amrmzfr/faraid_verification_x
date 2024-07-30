@@ -34,7 +34,7 @@ urlpatterns = [
     path('compare-all-documents/<str:issuer_email>/', views.compare_all_documents, name='compare_all_documents'),
 
     # Specific Paths
-    path('pendaftaran-negara/', views.pendaftaran_negara_view, name='pendaftaran_negara'),
+    path('pendaftaran-negara/', views.pendaftaran_negara_view, name='jpn'),
     path('pejabat-tanah/', views.pejabat_tanah_view, name='pejabat_tanah'),
     path('kwsp/', views.kwsp_view, name='kwsp'),
     path('jpj/', views.jpj_view, name='jpj'),
