@@ -9,6 +9,7 @@ urlpatterns = [
     path('home/', views.index, name='home'),
     path('profile/', views.user_profile_view, name='user_profile'),
     path('profile_officer/', views.user_profile_officer_view, name='user_profile_officer'),
+    path('officer-dashboard/', views.officer_dashboard_view, name='officer_dashboard'),
 
     # Document Management
     path('uploaded-documents/', views.uploaded_documents_view, name='uploaded_documents'),
@@ -18,6 +19,7 @@ urlpatterns = [
     path('view-document/<int:document_id>/', views.view_document, name='view_document'),
     path('officer-documents/', views.officer_documents_view, name='officer_documents'),
     path('verification/', views.verification_page, name='verification_page'),
+    
 
     # Officer Actions
     path('officer-dashboard/', views.officer_dashboard_view, name='officer_dashboard'),
