@@ -365,7 +365,6 @@ def send_email_to_officer():
     )
     send_message(service, 'me', email_message)
 
-
 @never_cache
 @login_required
 def handle_uploaded_document(request, template_name, department_name):
@@ -393,18 +392,19 @@ def handle_uploaded_document(request, template_name, department_name):
             # Send email notification to officers of the relevant department
             notify_officers(department_name)
 
-            # Redirect back to the same page
-            return HttpResponseRedirect(request.get_full_path())
+            return JsonResponse({'success': True, 'message': 'The PDF is successfully uploaded.'})
         else:
-            form = DocumentForm()
-            return render(request, template_name, {'form': form, 'errors': form.errors})
-    else:
-        form = DocumentForm()
-        return render(request, template_name, {'form': form})
+            errors = form.errors.as_json()
+            return JsonResponse({'success': False, 'errors': errors}, status=400)
 
+    form = DocumentForm()
+    return render(request, template_name, {'form': form})
+
+
+#---------------__TEST__-------------#
 def notify_officers(department_name):
     # Get all officers from the relevant department
-    officers = UserRole.objects.filter(role='officer', department=department_name)
+    officers = UserRole.objects.filter(role='Officer', department=department_name)
     officer_emails = [officer.user.email for officer in officers]
 
     # Send notification email to officers
@@ -526,36 +526,10 @@ def jpj_view(request):
 
 # ------------------------ DOCUMENT PROCESSING ------------------------ #
 
-import logging
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.cache import never_cache
-from django.http import HttpResponseBadRequest
-
-# Initialize logger
-logger = logging.getLogger(__name__)
-
 @never_cache
 @login_required
 def process_document(request, document):
-    try:
-        # Validate document
-        if not document or not hasattr(document, 'pdf_file'):
-            return HttpResponseBadRequest("Invalid document")
-
-        # Process the PDF file
-        normalized_text, hashed_text = process_pdf(document.pdf_file)
-
-        # Update document with processed data
-        document.normalized_text = normalized_text
-        document.hashed_text = hashed_text
-
-        # Save the updated document
-        document.save()
-
-        # Log the successful processing
-        logger.info(f"Document ID {document.id} processed successfully.")
-
-    except Exception as e:
-        # Log the exception
-        logger.error(f"Error processing document ID {document.id}: {str(e)}")
-        return HttpResponseBadRequest("An error occurred while processing the document.")
+    normalized_text, hashed_text = process_pdf(document.pdf_file)
+    document.normalized_text = normalized_text
+    document.hashed_text = hashed_text
+    document.save()
