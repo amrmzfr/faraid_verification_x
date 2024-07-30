@@ -1,388 +1,151 @@
 {% extends "layouts/base.html" %}
+{% load static %}
 
-{% block title %} Dashboard {% endblock %} 
+{% block title %} Profile - My Website {% endblock %}
 
-<!-- Specific Page CSS goes HERE  -->
-{% block stylesheets %}{% endblock stylesheets %}
+{% block page_title %}Pejabat Tanah{% endblock %}
+
+{% block stylesheets %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'pdf.js/web/viewer.css' %}">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        /* Override modal dialog size */
+        .modal-dialog {
+            width: 794px; /* A4 width in pixels */
+            height: 1123px; /* A4 height in pixels */
+            max-width: 100%; /* Ensure it doesn't exceed the viewport width */
+        }
+    
+        /* Adjust PDF preview canvas to match modal size */
+        #pdfPreview {
+            border: 1px solid #ccc;
+            width: 100%;
+            height: 100%;
+            max-width: 100%;
+            max-height: 100%;
+            overflow: auto; /* Enable scrolling */
+        }
+    
+                /* Container and form-container styling with gradient black background */
+        .container, .form-container {
+            background: linear-gradient(45deg, #111111, #333333); /* Adjusted black gradient */
+            color: white; /* White text color */
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Optional: Add shadow for depth */
+            font-size: 12px; /* Set font size */
+        }
+
+        /* Ensure .card background matches the container */
+        .card {
+            background: inherit; /* Inherit background from parent */
+            border: none; /* Remove default border if needed */
+            border-radius: 10px; /* Ensure consistency with other containers */
+            margin-bottom: 20px; /* Add margin to separate visually */
+            font-family: 'Roboto Mono', monospace; /* Set font to Roboto Mono */
+            color: white; /* White text color */
+        }
+
+
+    
+        /* Button styling */
+        .btn {
+            font-size: 12px; /* Set button text size */
+            border-radius: 5px; /* Rounded corners */
+            padding: 10px 20px; /* Padding for buttons */
+            border: none; /* Remove default border */
+        }
+    
+        /* Additional styles can be added here */
+        .nav-links {
+            margin-top: 20px;
+        }
+        .nav-links a {
+            margin-right: 10px;
+        }
+        .messages {
+            margin-top: 20px;
+        }
+        .message {
+            padding: 10px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+        }
+        .modal-body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0; /* Remove padding to fit exact dimensions */
+        }
+        #pdf-nav {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        /* Adjust the size of the file input */
+        input.file-input {
+            width: 200px;
+            height: 10px;
+            padding: 5px;
+        }
+    </style>
+
+    <!-- Load Google Fonts for Roboto Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap" rel="stylesheet">
+{% endblock stylesheets %}
 
 {% block content %}
-
-    <div class="content">
-        <div class="row">
-            <div class="col-12">
-                <div class="card card-chart">
-                    <div class="card-header ">
-                        <div class="row">
-                            <div class="col-sm-6 text-left">
-                                <h5 class="card-category">Total Shipments</h5>
-                                <h2 class="card-title">Performance</h2>
-                            </div>
-                            <div class="col-sm-6">
-                                <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
-                                    <label class="btn btn-sm btn-primary btn-simple active" id="0">
-                                        <input type="radio" name="options" checked>
-                                        <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Accounts</span>
-                                        <span class="d-block d-sm-none">
-                        <i class="tim-icons icon-single-02"></i>
-                    </span>
-                                    </label>
-                                    <label class="btn btn-sm btn-primary btn-simple" id="1">
-                                        <input type="radio" class="d-none d-sm-none" name="options">
-                                        <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Purchases</span>
-                                        <span class="d-block d-sm-none">
-                        <i class="tim-icons icon-gift-2"></i>
-                    </span>
-                                    </label>
-                                    <label class="btn btn-sm btn-primary btn-simple" id="2">
-                                        <input type="radio" class="d-none" name="options">
-                                        <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Sessions</span>
-                                        <span class="d-block d-sm-none">
-                        <i class="tim-icons icon-tap-02"></i>
-                    </span>
-                                    </label>
+<div class="content">
+    <div class="row">
+        <div class="col-12">
+            <!-- Upload Document Section -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Upload Documents</h5>
+                </div>
+                <div class="card-body">
+                    <div class="container">
+                        <form id="multiUploadForm" method="post" enctype="multipart/form-data" class="form-container">
+                            {% csrf_token %}
+                            <input type="hidden" name="department" value="Pejabat Tanah"> <!-- Set department type -->
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Upload your geran_tanah</h6>
+                                    <input type="hidden" name="doc_type_1" value="geran_tanah">
+                                    <input type="file" name="pdf_file_1" class="form-control">
+                                    <button type="button" class="btn btn-secondary preview-btn" data-file-input="pdf_file_1">Preview PDF</button>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Upload your perjanjian_jual_beli</h6>
+                                    <input type="hidden" name="doc_type_2" value="perjanjian_jual_beli">
+                                    <input type="file" name="pdf_file_2" class="form-control">
+                                    <button type="button" class="btn btn-secondary preview-btn" data-file-input="pdf_file_2">Preview PDF</button>
+                                </div>
+                                <div style="padding-top: 20px;" class="col-md-6">
+                                    <h6>Upload your borang_a14</h6>
+                                    <input type="hidden" name="doc_type_3" value="borang_a14">
+                                    <input type="file" name="pdf_file_3" class="form-control">
+                                    <button type="button" class="btn btn-secondary preview-btn" data-file-input="pdf_file_3">Preview PDF</button>
+                                </div>
+                                <div style="padding-top: 20px;" class="col-md-6">
+                                    <h6>Upload your resit_pembelian</h6>
+                                    <input type="hidden" name="doc_type_4" value="resit_pembelian">
+                                    <input type="file" name="pdf_file_4" class="form-control">
+                                    <button type="button" class="btn btn-secondary preview-btn" data-file-input="pdf_file_4">Preview PDF</button>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="chart-area">
-                            <canvas id="chartBig1"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-lg-4">
-                <div class="card card-chart">
-                    <div class="card-header">
-                        <h5 class="card-category">Total Shipments</h5>
-                        <h3 class="card-title"><i class="tim-icons icon-bell-55 text-primary"></i> 763,215</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="chart-area">
-                            <canvas id="chartLinePurple"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-4">
-                <div class="card card-chart">
-                    <div class="card-header">
-                        <h5 class="card-category">Daily Sales</h5>
-                        <h3 class="card-title"><i class="tim-icons icon-delivery-fast text-info"></i> 3,500€</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="chart-area">
-                            <canvas id="CountryChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-4">
-                <div class="card card-chart">
-                    <div class="card-header">
-                        <h5 class="card-category">Completed Tasks</h5>
-                        <h3 class="card-title"><i class="tim-icons icon-send text-success"></i> 12,100K</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="chart-area">
-                            <canvas id="chartLineGreen"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-lg-6 col-md-12">
-                <div class="card card-tasks">
-                    <div class="card-header ">
-                        <h6 class="title d-inline">Tasks(5)</h6>
-                        <p class="card-category d-inline">today</p>
-                        <div class="dropdown">
-                            <button type="button" class="btn btn-link dropdown-toggle btn-icon"
-                                    data-toggle="dropdown">
-                                <i class="tim-icons icon-settings-gear-63"></i>
-                            </button>
-                            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuLink">
-                                <a class="dropdown-item" href="#pablo">Action</a>
-                                <a class="dropdown-item" href="#pablo">Another action</a>
-                                <a class="dropdown-item" href="#pablo">Something else</a>
+                            <div style="padding-top: 20px;" class="row">
+                                <div class="col-12 text-center">
+                                    <button type="submit" class="btn btn-secondary">Upload All</button>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                    <div class="card-body ">
-                        <div class="table-full-width table-responsive">
-                            <table class="table">
-                                <tbody>
-                                <tr>
-                                    <td>
-                                        <div class="form-check">
-                                            <label class="form-check-label">
-                                                <input class="form-check-input" type="checkbox" value="">
-                                                <span class="form-check-sign">
-                            <span class="check"></span>
-                            </span>
-                                            </label>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <p class="title">Update the Documentation</p>
-                                        <p class="text-muted">Dwuamish Head, Seattle, WA 8:47 AM</p>
-                                    </td>
-                                    <td class="td-actions text-right">
-                                        <button type="button" rel="tooltip" title="" class="btn btn-link"
-                                                data-original-title="Edit Task">
-                                            <i class="tim-icons icon-pencil"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="form-check">
-                                            <label class="form-check-label">
-                                                <input class="form-check-input" type="checkbox" value="" checked="">
-                                                <span class="form-check-sign">
-                            <span class="check"></span>
-                            </span>
-                                            </label>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <p class="title">GDPR Compliance</p>
-                                        <p class="text-muted">The GDPR is a regulation that requires businesses to
-                                            protect the personal data and privacy of Europe citizens for
-                                            transactions that occur within EU member states.</p>
-                                    </td>
-                                    <td class="td-actions text-right">
-                                        <button type="button" rel="tooltip" title="" class="btn btn-link"
-                                                data-original-title="Edit Task">
-                                            <i class="tim-icons icon-pencil"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="form-check">
-                                            <label class="form-check-label">
-                                                <input class="form-check-input" type="checkbox" value="">
-                                                <span class="form-check-sign">
-                            <span class="check"></span>
-                            </span>
-                                            </label>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <p class="title">Solve the issues</p>
-                                        <p class="text-muted">Fifty percent of all respondents said they would be
-                                            more likely to shop at a company </p>
-                                    </td>
-                                    <td class="td-actions text-right">
-                                        <button type="button" rel="tooltip" title="" class="btn btn-link"
-                                                data-original-title="Edit Task">
-                                            <i class="tim-icons icon-pencil"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="form-check">
-                                            <label class="form-check-label">
-                                                <input class="form-check-input" type="checkbox" value="">
-                                                <span class="form-check-sign">
-                            <span class="check"></span>
-                            </span>
-                                            </label>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <p class="title">Release v2.0.0</p>
-                                        <p class="text-muted">Ra Ave SW, Seattle, WA 98116, SUA 11:19 AM</p>
-                                    </td>
-                                    <td class="td-actions text-right">
-                                        <button type="button" rel="tooltip" title="" class="btn btn-link"
-                                                data-original-title="Edit Task">
-                                            <i class="tim-icons icon-pencil"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="form-check">
-                                            <label class="form-check-label">
-                                                <input class="form-check-input" type="checkbox" value="">
-                                                <span class="form-check-sign">
-                            <span class="check"></span>
-                            </span>
-                                            </label>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <p class="title">Export the processed files</p>
-                                        <p class="text-muted">The report also shows that consumers will not easily
-                                            forgive a company once a breach exposing their personal data
-                                            occurs. </p>
-                                    </td>
-                                    <td class="td-actions text-right">
-                                        <button type="button" rel="tooltip" title="" class="btn btn-link"
-                                                data-original-title="Edit Task">
-                                            <i class="tim-icons icon-pencil"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="form-check">
-                                            <label class="form-check-label">
-                                                <input class="form-check-input" type="checkbox" value="">
-                                                <span class="form-check-sign">
-                            <span class="check"></span>
-                            </span>
-                                            </label>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <p class="title">Arival at export process</p>
-                                        <p class="text-muted">Capitol Hill, Seattle, WA 12:34 AM</p>
-                                    </td>
-                                    <td class="td-actions text-right">
-                                        <button type="button" rel="tooltip" title="" class="btn btn-link"
-                                                data-original-title="Edit Task">
-                                            <i class="tim-icons icon-pencil"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-6 col-md-12">
-                <div class="card ">
-                    <div class="card-header">
-                        <h4 class="card-title"> Simple Table</h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table tablesorter " id="">
-                                <thead class=" text-primary">
-                                <tr>
-                                    <th>
-                                        Name
-                                    </th>
-                                    <th>
-                                        Country
-                                    </th>
-                                    <th>
-                                        City
-                                    </th>
-                                    <th class="text-center">
-                                        Salary
-                                    </th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <tr>
-                                    <td>
-                                        Dakota Rice
-                                    </td>
-                                    <td>
-                                        Niger
-                                    </td>
-                                    <td>
-                                        Oud-Turnhout
-                                    </td>
-                                    <td class="text-center">
-                                        $36,738
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        Minerva Hooper
-                                    </td>
-                                    <td>
-                                        Curaçao
-                                    </td>
-                                    <td>
-                                        Sinaai-Waas
-                                    </td>
-                                    <td class="text-center">
-                                        $23,789
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        Sage Rodriguez
-                                    </td>
-                                    <td>
-                                        Netherlands
-                                    </td>
-                                    <td>
-                                        Baileux
-                                    </td>
-                                    <td class="text-center">
-                                        $56,142
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        Philip Chaney
-                                    </td>
-                                    <td>
-                                        Korea, South
-                                    </td>
-                                    <td>
-                                        Overland Park
-                                    </td>
-                                    <td class="text-center">
-                                        $38,735
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        Doris Greene
-                                    </td>
-                                    <td>
-                                        Malawi
-                                    </td>
-                                    <td>
-                                        Feldkirchen in Kärnten
-                                    </td>
-                                    <td class="text-center">
-                                        $63,542
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        Mason Porter
-                                    </td>
-                                    <td>
-                                        Chile
-                                    </td>
-                                    <td>
-                                        Gloucester
-                                    </td>
-                                    <td class="text-center">
-                                        $78,615
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        Jon Porter
-                                    </td>
-                                    <td>
-                                        Portugal
-                                    </td>
-                                    <td>
-                                        Gloucester
-                                    </td>
-                                    <td class="text-center">
-                                        $98,615
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
+                        </form>
+                        <div style="padding-left: 40px;" class="nav-links">
+                            <a href="{% url 'home' %}" class="btn btn-secondary">Go Back Home</a>
+                            <a href="{% url 'uploaded_documents' %}" class="btn btn-secondary ">View Uploaded Documents</a>
                         </div>
                     </div>
                 </div>
@@ -390,17 +153,164 @@
         </div>
     </div>
 
+    <!-- PDF Preview Modal -->
+    <div class="modal fade" id="pdfPreviewModal" tabindex="-1" aria-labelledby="pdfPreviewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="pdfPreviewModalLabel">PDF Preview</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="pdfContainer" style="width: 100%; height: 100%;">
+                        <canvas id="pdfPreview"></canvas>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div id="pdf-nav">
+                        <button type="button" class="btn btn-secondary" id="prevPage">Previous</button>
+                        <button type="button" class="btn btn-secondary" id="nextPage">Next</button>
+                        <span>Page: <span id="pageNum"></span> / <span id="pageCount"></span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock content %}
 
-<!-- Specific Page JS goes HERE  -->
 {% block javascripts %}
+    {{ block.super }}
+    <!-- Load PDF.js library from CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        let pdfDoc = null,
+            pageNum = 1,
+            pageRendering = false,
+            pageNumPending = null,
+            scale = 1, // Adjust scale as needed for readability
+            canvas = document.getElementById('pdfPreview'),
+            ctx = canvas.getContext('2d');
 
-<script>
-    $(document).ready(function () {
-        // Javascript method's body can be found in assets/js/demos.js
-        demo.initDashboardPageCharts();
+        document.querySelectorAll('.preview-btn').forEach(function(button) {
+            button.addEventListener('click', function() {
+                const fileInputName = button.getAttribute('data-file-input');
+                const fileInput = document.querySelector(`input[name="${fileInputName}"]`);
+                const file = fileInput.files[0];
+                if (file) {
+                    const fileReader = new FileReader();
+                    fileReader.onload = function() {
+                        const pdfData = new Uint8Array(this.result);
 
-    });
-</script>
+                        const loadingTask = pdfjsLib.getDocument({ data: pdfData });
+                        loadingTask.promise.then(function(pdf) {
+                            pdfDoc = pdf;
+                            document.getElementById('pageCount').textContent = pdf.numPages;
+                            renderPage(pageNum);
+                            $('#pdfPreviewModal').modal('show');
+                        });
+                    };
+                    fileReader.readAsArrayBuffer(file);
+                } else {
+                    alert("Please select a PDF file to preview.");
+                }
+            });
+        });
 
+        function renderPage(num) {
+            pageRendering = true;
+            pdfDoc.getPage(num).then(function(page) {
+                const viewport = page.getViewport({ scale: scale });
+
+                // Adjust canvas dimensions for scaled size
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+
+                const renderContext = {
+                    canvasContext: ctx,
+                    viewport: viewport
+                };
+
+                const renderTask = page.render(renderContext);
+                renderTask.promise.then(function() {
+                    pageRendering = false;
+                    if (pageNumPending !== null) {
+                        renderPage(pageNumPending);
+                        pageNumPending = null;
+                    }
+                });
+            });
+
+            document.getElementById('pageNum').textContent = num;
+        }
+
+        function queueRenderPage(num) {
+            if (pageRendering) {
+                pageNumPending = num;
+            } else {
+                renderPage(num);
+            }
+        }
+
+        document.getElementById('multiUploadForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+            const fileInputs = ['pdf_file_1', 'pdf_file_2', 'pdf_file_3', 'pdf_file_4'];
+            let allFilesSelected = true;
+
+            // Check if any file input is empty
+            fileInputs.forEach(fileInputName => {
+                const file = formData.get(fileInputName);
+                if (!file || file.size === 0) {
+                    allFilesSelected = false;
+                }
+            });
+
+            if (!allFilesSelected) {
+                alert('All documents are required.');
+                return;
+            }
+
+            const uploadPromises = fileInputs.map(fileInputName => {
+                const file = formData.get(fileInputName);
+                if (file && file.size > 0) {
+                    const docType = formData.get('doc_type_' + (fileInputs.indexOf(fileInputName) + 1));
+                    const uploadData = new FormData();
+                    uploadData.append('csrfmiddlewaretoken', formData.get('csrfmiddlewaretoken'));
+                    uploadData.append('doc_type', docType);
+                    uploadData.append('pdf_file', file);
+
+                    // Send AJAX request to upload each file
+                    return fetch('{% url "pejabat_tanah" %}', {
+                        method: 'POST',
+                        body: uploadData
+                    }).then(response => response.json());
+                }
+            });
+
+            Promise.all(uploadPromises)
+                .then(responses => {
+                    let allSuccessful = true;
+                    responses.forEach(data => {
+                        if (!data.success) {
+                            allSuccessful = false;
+                            alert('Upload failed: ' + data.errors);
+                        }
+                    });
+                    if (allSuccessful) {
+                        alert('All documents uploaded successfully.');
+                        // Optionally, you can update UI or perform additional actions
+                    }
+                })
+                .catch(error => console.error(error));
+        });
+
+    </script>
+    <!-- Additional JavaScript if needed -->
+    <script src="{% static 'assets/demo/demo.js' %}"></script>
 {% endblock javascripts %}
+
