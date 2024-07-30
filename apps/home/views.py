@@ -258,7 +258,7 @@ def signature_completed(request):
         data = json.loads(request.body)
         signature_request_id = data['signature_request_id']
         issuer_email = data['issuer_email']
-        
+         
         # Create instance of DropboxSignService
         service = DropboxSignService()
         
@@ -268,11 +268,11 @@ def signature_completed(request):
         # Send signed document to the issuer
         send_signed_document_to_issuer(issuer_email, signed_document)
 
+        send_signed_document_to_client(issuer_email, signed_document, comparison_results)
         # Get the comparison results
         comparison_results = compare_documents(issuer_email)
         
         # Send comparison results to the client
-        send_comparison_results_email(issuer_email, comparison_results)
 
         return JsonResponse({'status': 'success'})
     return JsonResponse({'status': 'invalid method'}, status=405)
@@ -299,23 +299,34 @@ def compare_documents(issuer_email):
 
     return comparison_results
 
-def send_comparison_results_email(client_email, comparison_results):
-    """Send comparison results to client."""
-    subject = "Document Comparison Results"
-    message = "The document comparison results are as follows:\n\n"
-    
+from django.core.mail import send_mail
+
+def send_signed_document_to_client(email, signed_document, comparison_results):
+    subject = "Your Document has been Signed and Comparison Results"
+    message = (
+        "The document has been successfully signed and is attached.\n\n"
+        "Here are the comparison results for your documents:\n\n"
+    )
+
+    # Add comparison results to the email body
     for result in comparison_results:
-        message += f"Document {result['number']}: {result['title']}\n"
-        message += f"Status: {result['status']}\n"
-        message += f"Hash Value: {result['hash_value']}\n"
-        message += f"Comparison Status: {result['comparison_status']}\n\n"
+        message += (
+            f"Document {result['number']}: {result['title']}\n"
+            f"Status: {result['status']}\n"
+            f"Hash Value: {result['hash_value']}\n"
+            f"Comparison Status: {result['comparison_status']}\n\n"
+        )
 
     send_mail(
         subject,
         message,
-        'from@example.com',  # Replace with your email
-        [client_email],
+        'your-email@gmail.com',  # Replace with your email
+        [email],
         fail_silently=False,
+        html_message="<p>The document has been successfully signed and is attached.</p>"
+                     "<p>Here are the comparison results for your documents:</p>"
+                     f"<pre>{message}</pre>",
+        attachments=[('signed_document.pdf', signed_document, 'application/pdf')],
     )
 
 def send_signed_document_to_issuer(email, signed_document):
