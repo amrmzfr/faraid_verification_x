@@ -528,10 +528,36 @@ def jpj_view(request):
 
 # ------------------------ DOCUMENT PROCESSING ------------------------ #
 
+import logging
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.cache import never_cache
+from django.http import HttpResponseBadRequest
+
+# Initialize logger
+logger = logging.getLogger(__name__)
+
 @never_cache
 @login_required
 def process_document(request, document):
-    normalized_text, hashed_text = process_pdf(document.pdf_file)
-    document.normalized_text = normalized_text
-    document.hashed_text = hashed_text
-    document.save()
+    try:
+        # Validate document
+        if not document or not hasattr(document, 'pdf_file'):
+            return HttpResponseBadRequest("Invalid document")
+
+        # Process the PDF file
+        normalized_text, hashed_text = process_pdf(document.pdf_file)
+
+        # Update document with processed data
+        document.normalized_text = normalized_text
+        document.hashed_text = hashed_text
+
+        # Save the updated document
+        document.save()
+
+        # Log the successful processing
+        logger.info(f"Document ID {document.id} processed successfully.")
+
+    except Exception as e:
+        # Log the exception
+        logger.error(f"Error processing document ID {document.id}: {str(e)}")
+        return HttpResponseBadRequest("An error occurred while processing the document.")
