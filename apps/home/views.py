@@ -488,7 +488,7 @@ def evaluate_document(request, document_title):
 @never_cache
 @login_required
 def pendaftaran_negara_view(request):
-    return render(request, 'home/jpn.html', 'JPN')
+    return handle_uploaded_document(request, 'home/jpn.html', 'JPN')
 
 
 @never_cache
