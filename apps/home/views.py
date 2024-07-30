@@ -365,6 +365,7 @@ def send_email_to_officer():
     )
     send_message(service, 'me', email_message)
 
+
 @never_cache
 @login_required
 def handle_uploaded_document(request, template_name, department_name):
@@ -396,15 +397,16 @@ def handle_uploaded_document(request, template_name, department_name):
         else:
             errors = form.errors.as_json()
             return JsonResponse({'success': False, 'errors': errors}, status=400)
+    else:
+        form = DocumentForm()
+        return render(request, template_name, {'form': form})
 
-    form = DocumentForm()
-    return render(request, template_name, {'form': form})
+    # Ensure that a response is always returned
+    return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=405)
 
-
-#---------------__TEST__-------------#
 def notify_officers(department_name):
     # Get all officers from the relevant department
-    officers = UserRole.objects.filter(role='Officer', department=department_name)
+    officers = UserRole.objects.filter(role='officer', department=department_name)
     officer_emails = [officer.user.email for officer in officers]
 
     # Send notification email to officers
