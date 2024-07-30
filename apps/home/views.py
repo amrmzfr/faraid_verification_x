@@ -389,6 +389,7 @@ def handle_uploaded_document(request, template_name, department_name):
             document.save()
 
             try:
+                # Call process_document without expecting a return value
                 process_document(request, document)
             except Exception as e:
                 if request.is_ajax():
@@ -412,6 +413,7 @@ def handle_uploaded_document(request, template_name, department_name):
     else:
         form = DocumentForm()
         return render(request, template_name, {'form': form})
+
 
 #---------------__TEST__-------------#
 def notify_officers(department_name):
