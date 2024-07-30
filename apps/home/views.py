@@ -367,6 +367,10 @@ def send_email_to_officer():
 
 import requests
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 @never_cache
 @login_required
 def handle_uploaded_document(request, template_name, department_name):
@@ -378,7 +382,6 @@ def handle_uploaded_document(request, template_name, department_name):
             doc_type = request.POST.get('doc_type', '')
             new_filename = f"{doc_type}_{user_email}.pdf"
 
-            # Define the directory for user documents
             user_directory = os.path.join(settings.MEDIA_ROOT, 'Documents', 'user')
             if not os.path.exists(user_directory):
                 os.makedirs(user_directory)
@@ -391,7 +394,6 @@ def handle_uploaded_document(request, template_name, department_name):
             document.save()
 
             try:
-                # Call process_document and handle the response
                 response = process_document(request, document)
                 if response.status_code == 200:
                     response_data = response.json()
@@ -402,11 +404,18 @@ def handle_uploaded_document(request, template_name, department_name):
                 else:
                     message = 'The PDF is successfully uploaded but processing could not be completed.'
                 
-                # Call the email notification view
+                # Log request to email notifications
+                logger.info('Sending email notifications for department: %s', department_name)
+                
                 email_response = requests.post(
                     'https://faraidverification-c2463c71ec9b.herokuapp.com/send-email-notifications/',
                     data={'department_name': department_name}
                 )
+                
+                # Log the email response
+                logger.info('Email notifications response status: %d', email_response.status_code)
+                logger.info('Email notifications response body: %s', email_response.text)
+                
                 if email_response.status_code == 200:
                     email_response_data = email_response.json()
                     if email_response_data['success']:
