@@ -448,9 +448,9 @@ def send_email_notifications(request):
         if not department_name:
             return JsonResponse({'success': False, 'message': 'Department name is required.'}, status=400)
 
-        # Logic to retrieve email addresses of officers in the department
-        # This is a placeholder. Replace with actual logic to get officer emails.
-        officer_emails = get_officer_emails(department_name)
+        # Retrieve email addresses of officers in the department
+        officer_emails = UserRole.objects.filter(role='Officer', department=department_name).values_list('user__email', flat=True)
+        
         if not officer_emails:
             return JsonResponse({'success': False, 'message': 'No emails found for the department.'}, status=404)
 
