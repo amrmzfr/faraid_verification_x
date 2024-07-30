@@ -320,7 +320,7 @@ def send_signed_document_to_client(email, signed_document, comparison_results):
     send_mail(
         subject,
         message,
-        'your-email@gmail.com',  # Replace with your email
+        'unlucky139913@gmail.com',  # Replace with your email
         [email],
         fail_silently=False,
         html_message="<p>The document has been successfully signed and is attached.</p>"
