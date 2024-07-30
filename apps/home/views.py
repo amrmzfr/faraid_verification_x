@@ -369,7 +369,6 @@ def send_email_to_officer():
 @never_cache
 @login_required
 def handle_uploaded_document(request, template_name, department_name):
-    response = None
     if request.method == 'POST':
         form = DocumentForm(request.POST, request.FILES)
         if form.is_valid():
@@ -394,24 +393,14 @@ def handle_uploaded_document(request, template_name, department_name):
             # Send email notification to officers of the relevant department
             notify_officers(department_name)
 
-            response = JsonResponse({'success': True, 'message': 'The PDF is successfully uploaded.'})
+            # Redirect back to the same page
+            return HttpResponseRedirect(request.get_full_path())
         else:
-            errors = form.errors.as_json()
-            response = JsonResponse({'success': False, 'errors': errors}, status=400)
+            form = DocumentForm()
+            return render(request, template_name, {'form': form, 'errors': form.errors})
     else:
         form = DocumentForm()
-        response = render(request, template_name, {'form': form})
-
-    # Ensure Content-Type header is set
-    if response:
-        response['Content-Type'] = 'application/json'
-
-    # Ensure that a response is always returned
-    if response is None:
-        response = JsonResponse({'success': False, 'message': 'Invalid request method'}, status=405)
-        response['Content-Type'] = 'application/json'
-
-    return response
+        return render(request, template_name, {'form': form})
 
 def notify_officers(department_name):
     # Get all officers from the relevant department
