@@ -128,8 +128,6 @@ def user_profile_officer_view(request):
 def officer_dashboard_view(request):
     return render(request, 'home/officer_dashboard.html')
 
-
-
 # the table that show the document list
 @never_cache
 @login_required
