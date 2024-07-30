@@ -387,30 +387,19 @@ def handle_uploaded_document(request, template_name, department_name):
             document.department = department_name
 
             document.save()
-
-            try:
-                # Call process_document without expecting a return value
-                process_document(request, document)
-            except Exception as e:
-                if request.is_ajax():
-                    return JsonResponse({'success': False, 'message': str(e)}, status=500)
-                return render(request, template_name, {'form': form, 'error': str(e)})
+            process_document(request, document)
 
             # Send email notification to officers of the relevant department
             notify_officers(department_name)
 
-            if request.is_ajax():
-                return JsonResponse({'success': True, 'message': 'The PDF is successfully uploaded.'})
-
+            # Redirect back to the same page after successful POST
             return redirect(request.path_info)
-        else:
-            if request.is_ajax():
-                errors = form.errors.as_json()
-                return JsonResponse({'success': False, 'errors': errors}, status=400)
 
-            return render(request, template_name, {'form': form})
+        # If the form is not valid, render the form with errors
+        return render(request, template_name, {'form': form})
 
     else:
+        # Handle GET requests by rendering the form
         form = DocumentForm()
         return render(request, template_name, {'form': form})
 
