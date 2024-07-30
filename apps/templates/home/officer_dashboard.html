@@ -1,0 +1,119 @@
+{% extends "layouts/base_officer.html" %}
+
+{% block title %} Officer Dashboard {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+<style>
+    .options-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+    }
+
+    .options-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr); /* Adjust grid columns as needed */
+        grid-gap: 20px;
+        justify-content: center;
+        width: 100%;
+        max-width: 900px; /* Adjust max width as needed */
+    }
+
+    .option {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        text-align: center;
+        box-sizing: border-box;
+        border-radius: 5px;
+        background: linear-gradient(0deg, #d586f8 0%, #f27fd5 100%); /* Lighter gradient */
+        color: #fff;
+        box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.2);
+    }
+
+    .option h2 {
+        font-size: 1.5em;
+        color: #fff; /* Ensure header text is white */
+    }
+
+    .option p {
+        margin: 10px 0;
+        color: #fff; /* Ensure paragraph text is white */
+    }
+
+    .option a.option-button {
+        display: inline-block;
+        padding: 10px 20px;
+        color: #000; /* Black text */
+        background-color: #fff; /* White background */
+        border-radius: 5px;
+        text-decoration: none;
+        margin-top: auto; /* Pushes the button to the bottom */
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    .option a.option-button:hover {
+        background-color: #e0e0e0; /* Light grey background on hover */
+        color: #000; /* Ensure text stays black on hover */
+    }
+
+    .option a.option-button:active {
+        background-color: #c0c0c0; /* Slightly darker grey on active */
+        color: #000; /* Ensure text stays black when active */
+    }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+
+<div class="content">
+    <div class="row">
+        <div class="col-12">
+            <div class="card card-chart">
+                <div class="card-header">
+                    <div class="row">
+                        <div class="col-sm-6 text-left">
+                            <h5 class="card-category">Officer Dashboard</h5>
+                            <h2 class="card-title">Document Management</h2>
+                        </div>
+                    </div>
+                </div>
+                <!-- Adding options grid container -->
+                <div class="card-body">
+                    <div class="options-container">
+                        <div class="options-grid">
+                            <div class="option">
+                                <h2>Verify Documents</h2>
+                                <p>Review and verify documents</p>
+                                <a href="{% url 'verification_page' %}" class="option-button">Go to Verification Page</a>
+                            </div>
+                            <div class="option">
+                                <h2>Upload Documents</h2>
+                                <p>Upload new documents</p>
+                                <a href="{% url 'upload_documents_officer' %}" class="option-button">Go to Upload Page</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- End of options grid container -->
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+<script>
+    $(document).ready(function () {
+        // JavaScript initialization can go here if needed
+    });
+</script>
+
+{% endblock javascripts %}

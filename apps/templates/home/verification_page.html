@@ -1,0 +1,144 @@
+{% extends "layouts/base_officer.html" %}
+{% load static %}
+
+{% block title %} Verification Page {% endblock %}
+
+{% block stylesheets %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'pdf.js/web/viewer.css' %}">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        /* Override modal dialog size */
+        .modal-dialog {
+            width: 794px; /* A4 width in pixels */
+            height: 1123px; /* A4 height in pixels */
+            max-width: 100%; /* Ensure it doesn't exceed the viewport width */
+        }
+
+        /* Adjust PDF preview canvas to match modal size */
+        #pdfPreview {
+            border: 1px solid #ccc;
+            width: 100%;
+            height: 100%;
+            max-width: 100%;
+            max-height: 100%;
+            overflow: auto; /* Enable scrolling */
+        }
+
+        /* Container and form-container styling with gradient pink background */
+        .container, .form-container {
+            background: linear-gradient(45deg, #ff80ab, #ff4d7a); /* Pink gradient */
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Optional: Add shadow for depth */
+            font-size: 12px; /* Set font size */
+        }
+
+        /* Ensure .card background matches the container */
+        .card {
+            background: inherit; /* Inherit background from parent */
+            border: none; /* Remove default border if needed */
+            border-radius: 10px; /* Ensure consistency with other containers */
+            margin-bottom: 20px; /* Add margin to separate visually */
+            font-family: 'Roboto Mono', monospace; /* Set font to Roboto Mono */
+        }
+
+        /* Button styling */
+        .btn {
+            font-size: 12px; /* Set button text size */
+            border-radius: 5px; /* Rounded corners */
+            padding: 10px 20px; /* Padding for buttons */
+            color: #fff; /* Text color */
+            border: none; /* Remove default border */
+        }
+
+        /* Primary button */
+        .btn-primary {
+            background-color: #ff2e63; /* Pink gradient start color */
+        }
+
+        /* Secondary button */
+        .btn-secondary {
+            background-color: #ff80ab; /* Pink gradient end color */
+        }
+
+        /* Additional styles can be added here */
+        .nav-links {
+            margin-top: 20px;
+        }
+
+        .nav-links a {
+            margin-right: 10px;
+        }
+
+        .messages {
+            margin-top: 20px;
+        }
+
+        .message {
+            padding: 10px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+        }
+
+        .modal-body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0; /* Remove padding to fit exact dimensions */
+        }
+
+        #pdf-nav {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+    </style>
+
+    <!-- Load Google Fonts for Roboto Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap" rel="stylesheet">
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="content">
+    <div class="row">
+        <div class="col-12">
+            <!-- Verification Document Section -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Verify Documents</h5>
+                </div>
+                <div class="card-body">
+                    <div class="container">
+                        {% if pending_emails %}
+                            <div class="row">
+                                {% for item in pending_emails %}
+                                    <div class="col-md-6">
+                    
+                                            <div class="card-header">
+                                                <h5 class="card-title">{{ item.issuer_email }}</h5>
+                                                <h7>AMOUNT OF DOCUMENTS TO BE VERIFIED  <span class="badge badge-primary badge-pill">{{ item.pending_count }}</span>
+                                            </div>
+                                            <div class="card-body">
+                                                <a href="{% url 'compare_all_documents' item.issuer_email %}" class="btn btn-primary">Verify Documents</a>
+                                            </div>
+                                      
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p>No pending documents for verification.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+    {{ block.super }}
+    <!-- Add your JavaScript for verification here -->
+{% endblock javascripts %}

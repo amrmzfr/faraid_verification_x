@@ -1,0 +1,115 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %} Dashboard {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}<style>
+    /* Container and form-container styling with gradient black background */
+    .container, .form-container {
+        background: linear-gradient(45deg, #111111, #333333); /* Adjusted black gradient */
+        color: white; /* White text color */
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Optional: Add shadow for depth */
+        font-size: 15px; /* Set font size */
+        margin-top: 20px; /* Add top margin between rows */
+    }
+
+    html {
+        scroll-behavior: smooth;
+    }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+
+<div class="content">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                        <div class="col-sm-6 text-left">
+                            <h1 class="card-category"></h1>
+                            <h2 class="card-title">Dashboard</h2>
+                        </div>
+                </div>
+                <!-- Adding options grid container -->
+                <div class="card-body">
+                    <div class="col-md-12">
+                        <div class="options-container">
+                            <div class="options-grid">
+                                <div class="row">
+                                    <div class="col-lg-12">
+                                        <div class="container">
+                                            <div class="card-header">
+                                                <h2>Jabatan Pendaftaran Negara</h2>
+                                                <h4>Bagi urusan pengesahan kad pengenalan semua ahli keluarga dan hal yang berkaitan</h4>
+                                                <a href="{% url 'uploaded_documents' %}" class="option-button">Tekan Sini</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-lg-12">
+                                        <div class="container">
+                                            <div class="card-header">
+                                                <h2>Pejabat Tanah</h2>
+                                                <h4>Pengurusan rumah dan tanah</h4>
+                                                <a href="{% url 'pejabat_tanah' %}" class="option-button">Tekan Sini</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-lg-12">
+                                        <div class="container">
+                                            <div class="card-header">
+                                                <h2>Kumpulan Wang Simpanan Pekerja</h2>
+                                                <h4>Bagi yang pendahulunya mempunyai akaun KWSP</h4>
+                                                <a href="{% url 'kwsp' %}" class="option-button">Tekan Sini</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-lg-12">
+                                        <div class="container">
+                                            <div class="card-header">
+                                                <h2>Jabatan Pengangkutan Jalan</h2>
+                                                <h4>Bagi pengesahan pemilikan kenderaan</h4>
+                                                <a href="{% url 'jpj' %}" class="option-button">Tekan Sini</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- End of options grid container -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CSS styles -->
+<style>
+    
+</style>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+<script>
+    $(document).ready(function () {
+        // Javascript method's body can be found in assets/js/demos.js
+        demo.initDashboardPageCharts();
+    });
+</script>
+
+{% endblock javascripts %}

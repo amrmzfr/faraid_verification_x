@@ -1,0 +1,197 @@
+{% extends "layouts/base_officer.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block stylesheets %}
+<style>
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: 20px;
+    }
+
+    .pagination a {
+        margin: 0 5px;
+        padding: 10px 20px;
+        color: #fff;
+        background-color: #ff2e63;
+        text-decoration: none;
+        border-radius: 5px;
+    }
+
+    .pagination a.disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+    }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="content">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Uploaded Documents</h3>
+                </div>
+                <div class="card-body">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-12">
+
+                                <div class="card">
+                                    <div class="card-body">
+                                        {% if officer_documents %}
+                                        <h4>Officer Documents</h4>
+                                        <div class="table-container">
+                                            <table class="table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>No</th>
+                                                        <th>File</th>
+                                                        <th>Department</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for document in officer_documents %}
+                                                    <tr>
+                                                        <td>{{ forloop.counter0|add:officer_documents.start_index }}</td>
+                                                        <td>{{ document.title }}</td>
+                                                        <td>{{ document.department }}</td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div class="pagination">
+                                            {% if officer_documents.has_previous %}
+                                            <a href="?officer_page=1" class="btn btn-secondary">&laquo;&laquo;</a>
+                                            <a href="?officer_page={{ officer_documents.previous_page_number }}" class="btn btn-secondary">&laquo;</a>
+                                            {% else %}
+                                            <a class="btn btn-secondary disabled">&laquo;&laquo;</a>
+                                            <a class="btn btn-secondary disabled">&laquo;</a>
+                                            {% endif %}
+
+                                            {% if officer_documents.has_next %}
+                                            <a href="?officer_page={{ officer_documents.next_page_number }}" class="btn btn-secondary">&raquo;</a>
+                                            <a href="?officer_page={{ officer_documents.paginator.num_pages }}" class="btn btn-secondary">&raquo;&raquo;</a>
+                                            {% else %}
+                                            <a class="btn btn-secondary disabled">&raquo;</a>
+                                            <a class="btn btn-secondary disabled">&raquo;&raquo;</a>
+                                            {% endif %}
+                                        </div>
+                                        <br>
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <h4>Add New Document</h4>
+                                            </div>
+                                            <div class="card-body">
+                                                <form id="addDocumentForm" method="POST" enctype="multipart/form-data">
+                                                    {% csrf_token %}
+                                                    <label for="doc_type">Document Type:</label>
+                                                    <select name="doc_type" required>
+                                                        <option value="geran_tanah">Geran Tanah</option>
+                                                        <option value="perjanjian_jual_beli">Perjanjian Jual Beli</option>
+                                                        <option value="borang_a14">Borang A14</option>
+                                                        <option value="resit_pembelian">Resit Pembelian</option>
+                                                    </select>
+                                                    <input type="file" name="pdf_file" required>
+                                                    <button type="submit" class="btn btn-secondary">Add Document</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                        {% else %}
+                                        <p>No officer documents uploaded.</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="card">
+                                    <div class="card-body">
+                                        {% if user_documents %}
+                                        <h4>User Documents</h4>
+                                        <div class="table-container">
+                                            <table class="table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>No</th>
+                                                        <th>File</th>
+                                                        <th>Department</th>
+                                                        <th>Status</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for document in user_documents %}
+                                                    <tr>
+                                                        <td>{{ forloop.counter0|add:user_documents.start_index }}</td>
+                                                        <td>{{ document.title }}</td>
+                                                        <td>{{ document.department }}</td>
+                                                        <td>{{ document.status }}</td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div class="pagination">
+                                            {% if user_documents.has_previous %}
+                                            <a href="?user_page=1" class="btn btn-secondary">&laquo;&laquo;</a>
+                                            <a href="?user_page={{ user_documents.previous_page_number }}" class="btn btn-secondary">&laquo;</a>
+                                            {% else %}
+                                            <a class="btn btn-secondary disabled">&laquo;&laquo;</a>
+                                            <a class="btn btn-secondary disabled">&laquo;</a>
+                                            {% endif %}
+
+                                            {% if user_documents.has_next %}
+                                            <a href="?user_page={{ user_documents.next_page_number }}" class="btn btn-secondary">&raquo;</a>
+                                            <a href="?user_page={{ user_documents.paginator.num_pages }}" class="btn btn-secondary">&raquo;&raquo;</a>
+                                            {% else %}
+                                            <a class="btn btn-secondary disabled">&raquo;</a>
+                                            <a class="btn btn-secondary disabled">&raquo;&raquo;</a>
+                                            {% endif %}
+                                        </div>
+                                        {% else %}
+                                        <p>No user documents uploaded.</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div style="padding-left: 40px;" class="nav-links">
+                                    <a href="{% url 'home' %}" class="btn btn-secondary">Go Back Home</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+<script>
+    document.getElementById('addDocumentForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const formData = new FormData(this);
+    
+        fetch('{% url "uploaded_documents" %}', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Document added successfully.');
+                window.location.reload(); // Reload the page to see the new document
+            } else {
+                alert('Error adding document: ' + data.errors);
+            }
+        })
+        .catch(error => {
+            console.error('Error adding document:', error);
+            alert('An error occurred while adding the document.');
+        });
+    });
+</script>
+{% endblock javascripts %}

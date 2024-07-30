@@ -1,0 +1,378 @@
+{% extends "layouts/base_officer.html" %}
+
+{% block title %} Dashboard {% endblock %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+    <style>
+        .pdf-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .pdf-container .pdf-viewer {
+            width: 48%; /* Adjust width as needed */
+        }
+        .btn-approve,
+        .btn-reject {
+            width: 170px; /* Adjust width as needed */
+            text-align: center;
+        }
+        th.hash-value-col,
+        td.hash-value-col {
+            max-width: 100px; /* Fixed max-width for hash value column */
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            text-align: center;
+        }
+        th.compare-col,
+        td.compare-col {
+            max-width: 80px; /* Fixed max-width for hash value column */
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            text-align: center;
+        }
+        th.title-col,
+        td.title-col {
+            max-width: 170px; /* Fixed max-width for hash value column */
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            text-align: center;
+        }
+        th.no-col,
+        td.no-col {
+            max-width: 30px; /* Fixed max-width for hash value column */
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            text-align: center;
+        }
+    </style>
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="content">
+    <div class="row">
+        <div class="col-12">
+            <h2>Documents Pending Verification for {{ issuer_email }}</h2>
+
+            <div id="comparisonResults">
+                <h3>Comparison Results:</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th class="no-col">Num</th>
+                            <th class="title-col">Title</th>
+                            <th>Status</th>
+                            <th class="hash-value-col">Hash Value</th>
+                            <th class="compare-col">Comparison Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for result in comparison_results %}
+                        <tr>
+                            <td class="no-col">{{ forloop.counter }}</td>
+                            <td class="title-col">{{ result.title }}</td>
+                            <td>{{ result.status }}</td>
+                            <td class="hash-value-col">{{ result.hash_value }}</td>
+                            <td class="compare-col">{{ result.comparison_status }}</td>
+                            <td>
+                                {% if result.status == 'pending' %}
+                                <form method="post" action="{% url 'approve_document' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="title" value="{{ result.title }}">
+                                    <button type="submit" class="btn btn-outline-success btn-approve">Approve</button>
+                                </form>
+                                <br>
+                                <form method="post" action="{% url 'reject_document' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="title" value="{{ result.title }}">
+                                    <button type="submit" class="btn btn-outline-danger btn-reject">Reject</button>
+                                </form>
+                                <br>
+                                
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <button type="button" class="btn btn-primary" id="sendSignatureRequest">Send Signature Request</button>
+
+            <a href="{% url 'officer_dashboard' %}" class="btn btn-secondary">Go Back Home</a>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="pdfPreviewModal" tabindex="-1" aria-labelledby="pdfPreviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" style="max-width: 90%;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pdfPreviewModalLabel">PDF Preview</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="pdf-container">
+                    <div class="pdf-viewer">
+                        <h3>User Copy</h3>
+                        <canvas id="pdfPreviewUser"></canvas>
+                    </div>
+                    <div class="pdf-viewer">
+                        <h3>Officer Copy</h3>
+                        <canvas id="pdfPreviewOfficer"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div id="pdf-nav">
+                    <button type="button" class="btn btn-secondary" id="prevPageUser">Previous</button>
+                    <button type="button" class="btn btn-secondary" id="nextPageUser">Next</button>
+                    <span>Page: <span id="pageNumUser"></span> / <span id="pageCountUser"></span></span>
+                </div>
+                <div id="pdf-nav-officer">
+                    <button type="button" class="btn btn-secondary" id="prevPageOfficer">Previous</button>
+                    <button type="button" class="btn btn-secondary" id="nextPageOfficer">Next</button>
+                    <span>Page: <span id="pageNumOfficer"></span> / <span id="pageCountOfficer"></span></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+    {{ block.super }}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+    <script>
+        document.getElementById('sendSignatureRequest').addEventListener('click', function() {
+            fetch('/send-officer-signature/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('Signature request sent to officer!');
+            })
+            .catch(error => {
+                alert('Error sending signature request.');
+            });
+        });
+        
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('compareButton').addEventListener('click', function(event) {
+                event.preventDefault(); // Prevent form submission
+                
+                fetch('/compare_all_documents/{{ issuer_email }}/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    let alertMessage = 'Comparison Results:\n\n';
+                    if (data.comparison_results && data.comparison_results.length > 0) {
+                        data.comparison_results.forEach(result => {
+                            alertMessage += `Document ID: ${result.document_id}, Title: ${result.title}, Status: ${result.status}\n`;
+                        });
+                    } else {
+                        alertMessage = 'No comparison results found.';
+                    }
+                    alert(alertMessage); // Display results in an alert box (or update HTML as needed)
+                })
+                .catch(error => {
+                    console.error('Error fetching comparison results:', error);
+                    alert('Error fetching comparison results.'); // Handle errors gracefully
+                });
+            });
+        });
+        
+        let pdfDocUser = null,
+            pageNumUser = 1,
+            pageRenderingUser = false,
+            pageNumPendingUser = null,
+            scaleUser = 1,
+            canvasUser = document.getElementById('pdfPreviewUser'),
+            ctxUser = canvasUser.getContext('2d');
+
+        let pdfDocOfficer = null,
+            pageNumOfficer = 1,
+            pageRenderingOfficer = false,
+            pageNumPendingOfficer = null,
+            scaleOfficer = 1,
+            canvasOfficer = document.getElementById('pdfPreviewOfficer'),
+            ctxOfficer = canvasOfficer.getContext('2d');
+
+        function loadPDF(pdfUrl, pdfType) {
+            fetch(pdfUrl)
+                .then(response => response.blob())
+                .then(blob => {
+                    const fileReader = new FileReader();
+                    fileReader.onload = function() {
+                        const pdfData = new Uint8Array(this.result);
+    
+                        const loadingTask = pdfjsLib.getDocument({ data: pdfData });
+                        loadingTask.promise.then(function(pdf) {
+                            if (pdfType === 'user') {
+                                pdfDocUser = pdf;
+                                document.getElementById('pageCountUser').textContent = pdf.numPages;
+                                renderPageUser(pageNumUser);
+                            } else if (pdfType === 'officer') {
+                                pdfDocOfficer = pdf;
+                                document.getElementById('pageCountOfficer').textContent = pdf.numPages;
+                                renderPageOfficer(pageNumOfficer);
+                            }
+                        });
+                    };
+                    fileReader.readAsArrayBuffer(blob);
+                })
+                .catch(error => console.error('Error loading PDF:', error));
+        }
+
+        function renderPageUser(num) {
+            pageRenderingUser = true;
+            pdfDocUser.getPage(num).then(function(page) {
+                const viewport = page.getViewport({ scale: scaleUser });
+                canvasUser.width = viewport.width;
+                canvasUser.height = viewport.height;
+
+                const renderContext = {
+                    canvasContext: ctxUser,
+                    viewport: viewport
+                };
+
+                const renderTask = page.render(renderContext);
+                renderTask.promise.then(function() {
+                    pageRenderingUser = false;
+                    if (pageNumPendingUser !== null) {
+                        renderPageUser(pageNumPendingUser);
+                        pageNumPendingUser = null;
+                    }
+                });
+            });
+
+            document.getElementById('pageNumUser').textContent = num;
+        }
+
+        function renderPageOfficer(num) {
+            pageRenderingOfficer = true;
+            pdfDocOfficer.getPage(num).then(function(page) {
+                const viewport = page.getViewport({ scale: scaleOfficer });
+                canvasOfficer.width = viewport.width;
+                canvasOfficer.height = viewport.height;
+
+                const renderContext = {
+                    canvasContext: ctxOfficer,
+                    viewport: viewport
+                };
+
+                const renderTask = page.render(renderContext);
+                renderTask.promise.then(function() {
+                    pageRenderingOfficer = false;
+                    if (pageNumPendingOfficer !== null) {
+                        renderPageOfficer(pageNumPendingOfficer);
+                        pageNumPendingOfficer = null;
+                    }
+                });
+            });
+
+            document.getElementById('pageNumOfficer').textContent = num;
+        }
+
+        function queueRenderPageUser(num) {
+            if (pageRenderingUser) {
+                pageNumPendingUser = num;
+            } else {
+                renderPageUser(num);
+            }
+        }
+
+        function queueRenderPageOfficer(num) {
+            if (pageRenderingOfficer) {
+                pageNumPendingOfficer = num;
+            } else {
+                renderPageOfficer(num);
+            }
+        }
+
+        document.querySelectorAll('.preview-btn').forEach(function(button) {
+            button.addEventListener('click', function() {
+                const userDocumentId = button.getAttribute('data-user-file-id');
+                const documentTitle = button.getAttribute('data-document-title');
+
+                // For demo purposes, load PDFs when preview button is clicked
+                const userPdfUrl = `/media/user_documents/${userDocumentId}.pdf`;
+                const officerPdfUrl = `/media/officer_documents/${userDocumentId}.pdf`;
+
+                loadPDF(userPdfUrl, 'user');
+                loadPDF(officerPdfUrl, 'officer');
+
+                // Update modal title
+                document.getElementById('pdfPreviewModalLabel').textContent = `PDF Preview - ${documentTitle}`;
+
+                // Show modal
+                $('#pdfPreviewModal').modal('show');
+            });
+        });
+
+        document.getElementById('prevPageUser').addEventListener('click', function() {
+            if (pageNumUser <= 1) {
+                return;
+            }
+            pageNumUser--;
+            queueRenderPageUser(pageNumUser);
+        });
+
+        document.getElementById('nextPageUser').addEventListener('click', function() {
+            if (pageNumUser >= pdfDocUser.numPages) {
+                return;
+            }
+            pageNumUser++;
+            queueRenderPageUser(pageNumUser);
+        });
+
+        document.getElementById('prevPageOfficer').addEventListener('click', function() {
+            if (pageNumOfficer <= 1) {
+                return;
+            }
+            pageNumOfficer--;
+            queueRenderPageOfficer(pageNumOfficer);
+        });
+
+        document.getElementById('nextPageOfficer').addEventListener('click', function() {
+            if (pageNumOfficer >= pdfDocOfficer.numPages) {
+                return;
+            }
+            pageNumOfficer++;
+            queueRenderPageOfficer(pageNumOfficer);
+        });
+
+        $('#pdfPreviewModal').on('hidden.bs.modal', function() {
+            // Clear canvases when modal is closed
+            ctxUser.clearRect(0, 0, canvasUser.width, canvasUser.height);
+            ctxOfficer.clearRect(0, 0, canvasOfficer.width, canvasOfficer.height);
+            pdfDocUser = null;
+            pdfDocOfficer = null;
+            pageNumUser = 1;
+            pageNumOfficer = 1;
+            pageNumPendingUser = null;
+            pageNumPendingOfficer = null;
+            document.getElementById('pageCountUser').textContent = '';
+            document.getElementById('pageCountOfficer').textContent = '';
+        });
+    </script>
+{% endblock javascripts %}

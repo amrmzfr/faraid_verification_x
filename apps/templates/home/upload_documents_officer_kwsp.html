@@ -1,0 +1,336 @@
+{% extends "layouts/base_officer.html" %}
+{% load static %}
+
+{% block title %} Profile - My Website {% endblock %}
+
+{% block page_title %}Pejabat Tanah{% endblock %}
+
+{% block stylesheets %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'pdf.js/web/viewer.css' %}">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        /* Override modal dialog size */
+        .modal-dialog {
+            width: 794px; /* A4 width in pixels */
+            height: 1123px; /* A4 height in pixels */
+            max-width: 100%; /* Ensure it doesn't exceed the viewport width */
+        }
+    
+        /* Adjust PDF preview canvas to match modal size */
+        #pdfPreview {
+            border: 1px solid #ccc;
+            width: 100%;
+            height: 100%;
+            max-width: 100%;
+            max-height: 100%;
+            overflow: auto; /* Enable scrolling */
+        }
+    
+        /* Container and form-container styling with gradient pink background */
+        .container, .form-container {
+            background: linear-gradient(45deg, #ff80ab, #ff4d7a); /* Pink gradient */
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Optional: Add shadow for depth */
+            font-size: 12px; /* Set font size */
+        }
+    
+        /* Ensure .card background matches the container */
+        .card {
+            background: inherit; /* Inherit background from parent */
+            border: none; /* Remove default border if needed */
+            border-radius: 10px; /* Ensure consistency with other containers */
+            margin-bottom: 20px; /* Add margin to separate visually */
+            font-family: 'Roboto Mono', monospace; /* Set font to Roboto Mono */
+        }
+    
+        /* Button styling */
+        .btn {
+            font-size: 12px; /* Set button text size */
+            border-radius: 5px; /* Rounded corners */
+            padding: 10px 20px; /* Padding for buttons */
+            color: #fff; /* Text color */
+            border: none; /* Remove default border */
+        }
+    
+        /* Primary button */
+        .btn-primary {
+            background-color: #ff2e63; /* Pink gradient start color */
+        }
+    
+        /* Secondary button */
+        .btn-secondary {
+            background-color: #ff80ab; /* Pink gradient end color */
+        }
+    
+        /* Additional styles can be added here */
+        .nav-links {
+            margin-top: 20px;
+        }
+        .nav-links a {
+            margin-right: 10px;
+        }
+        .messages {
+            margin-top: 20px;
+        }
+        .message {
+            padding: 10px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+        }
+        .modal-body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0; /* Remove padding to fit exact dimensions */
+        }
+        #pdf-nav {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+    </style>
+
+    <!-- Load Google Fonts for Roboto Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap" rel="stylesheet">
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="content">
+    <div class="row">
+        <div class="col-12">
+            <!-- Upload Document Section -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Upload Documents</h5>
+                </div>
+                <div class="card-body">
+                    <div class="container">
+                        <form id="multiUploadForm" method="post" enctype="multipart/form-data" class="form-container">
+                            {% csrf_token %}
+                            <div class="row">
+                                <div class="col-md-6 text-center">
+                                    <label for="clientEmail">Client Email:</label>
+                                    <input type="email" id="clientEmail" name="client_email" class="form-control" required>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Upload your geran_tanah</h6>
+                                    <input type="hidden" name="doc_type_1" value="geran_tanah">
+                                    <input type="file" name="pdf_file_1" class="form-control">
+                                    <button type="button" class="btn btn-primary preview-btn" data-file-input="pdf_file_1">Preview PDF</button>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Upload your perjanjian_jual_beli</h6>
+                                    <input type="hidden" name="doc_type_2" value="perjanjian_jual_beli">
+                                    <input type="file" name="pdf_file_2" class="form-control">
+                                    <button type="button" class="btn btn-primary preview-btn" data-file-input="pdf_file_2">Preview PDF</button>
+                                </div>
+                                <div style="padding-top: 20px;" class="col-md-6">
+                                    <h6>Upload your borang_a14</h6>
+                                    <input type="hidden" name="doc_type_3" value="borang_a14">
+                                    <input type="file" name="pdf_file_3" class="form-control">
+                                    <button type="button" class="btn btn-primary preview-btn" data-file-input="pdf_file_3">Preview PDF</button>
+                                </div>
+                                <div style="padding-top: 20px;" class="col-md-6">
+                                    <h6>Upload your resit_pembelian</h6>
+                                    <input type="hidden" name="doc_type_4" value="resit_pembelian">
+                                    <input type="file" name="pdf_file_4" class="form-control">
+                                    <button type="button" class="btn btn-primary preview-btn" data-file-input="pdf_file_4">Preview PDF</button>
+                                </div>
+                            </div>
+                            </div>
+                            <div style="padding-top: 20px;" class="row">
+                                <div class="col-12 text-center">
+                                    <button type="submit" class="btn btn-primary">Upload All</button>
+                                </div>
+                            </div>
+                        </form>                        
+                        <div style="padding-left: 40px;" class="nav-links">
+                            <a href="{% url 'home' %}" class="btn btn-secondary">Go Back Home</a>
+                            <a href="{% url 'uploaded_documents' %}" class="btn btn-secondary">View Uploaded Documents</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PDF Preview Modal -->
+    <div class="modal fade" id="pdfPreviewModal" tabindex="-1" aria-labelledby="pdfPreviewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="pdfPreviewModalLabel">PDF Preview</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body"> 
+                    <div id="pdfContainer" style="width: 100%; height: 100%;">
+                        <canvas id="pdfPreview"></canvas>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div id="pdf-nav">
+                        <button type="button" class="btn btn-secondary" id="prevPage">Previous</button>
+                        <button type="button" class="btn btn-secondary" id="nextPage">Next</button>
+                        <span>Page: <span id="pageNum"></span> / <span id="pageCount"></span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+{{ block.super }}
+    <!-- Load PDF.js library from CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        let pdfDoc = null,
+            pageNum = 1,
+            pageRendering = false,
+            pageNumPending = null,
+            scale = 1, // Adjust scale as needed for readability
+            canvas = document.getElementById('pdfPreview'),
+            ctx = canvas.getContext('2d');
+
+        document.querySelectorAll('.preview-btn').forEach(function(button) {
+            button.addEventListener('click', function() {
+                const fileInputName = button.getAttribute('data-file-input');
+                const fileInput = document.querySelector(`input[name="${fileInputName}"]`);
+                const file = fileInput.files[0];
+                if (file) {
+                    const fileReader = new FileReader();
+                    fileReader.onload = function() {
+                        const pdfData = new Uint8Array(this.result);
+
+                        const loadingTask = pdfjsLib.getDocument({ data: pdfData });
+                        loadingTask.promise.then(function(pdf) {
+                            pdfDoc = pdf;
+                            document.getElementById('pageCount').textContent = pdf.numPages;
+                            renderPage(pageNum);
+                            $('#pdfPreviewModal').modal('show');
+                        });
+                    };
+                    fileReader.readAsArrayBuffer(file);
+                } else {
+                    alert("Please select a PDF file to preview.");
+                }
+            });
+        });
+
+        function renderPage(num) {
+            pageRendering = true;
+            pdfDoc.getPage(num).then(function(page) {
+                const viewport = page.getViewport({ scale: scale });
+
+                // Adjust canvas dimensions for scaled size
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+
+                const renderContext = {
+                    canvasContext: ctx,
+                    viewport: viewport
+                };
+
+                const renderTask = page.render(renderContext);
+                renderTask.promise.then(function() {
+                    pageRendering = false;
+                    if (pageNumPending !== null) {
+                        renderPage(pageNumPending);
+                        pageNumPending = null;
+                    }
+                });
+            });
+
+            document.getElementById('pageNum').textContent = num;
+        }
+
+        function queueRenderPage(num) {
+            if (pageRendering) {
+                pageNumPending = num;
+            } else {
+                renderPage(num);
+            }
+        }
+
+        document.getElementById('multiUploadForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const formData = new FormData(this);
+            const clientEmail = formData.get('client_email');
+
+            // Check if client email is provided
+            if (!clientEmail) {
+                alert('Client email is required.');
+                return;
+            }
+
+            const fileInputs = ['pdf_file_1', 'pdf_file_2', 'pdf_file_3', 'pdf_file_4'];
+            let allFilesSelected = true;
+
+            // Check if any file input is empty
+            fileInputs.forEach(fileInputName => {
+                const file = formData.get(fileInputName);
+                if (!file || file.size === 0) {
+                    allFilesSelected = false;
+                }
+            });
+
+            if (!allFilesSelected) {
+                alert('All documents are required.');
+                return;
+            }
+
+            const uploadPromises = fileInputs.map(fileInputName => {
+                const file = formData.get(fileInputName);
+                if (file && file.size > 0) {
+                    const docType = formData.get('doc_type_' + (fileInputs.indexOf(fileInputName) + 1));
+                    const uploadData = new FormData();
+                    uploadData.append('csrfmiddlewaretoken', formData.get('csrfmiddlewaretoken'));
+                    uploadData.append('doc_type', docType);
+                    uploadData.append('pdf_file', file);
+                    uploadData.append('client_email', clientEmail); // Include client_email
+
+                    // Send AJAX request to upload each file
+                    return fetch('{% url "upload_documents_officer" %}', {
+                        method: 'POST',
+                        body: uploadData
+                    });
+                }
+            });
+
+            // Wait for all uploads to complete
+            Promise.all(uploadPromises)
+                .then(responses => {
+                    // Check if all uploads were successful
+                    let allSuccessful = true;
+                    responses.forEach(response => {
+                        if (!response.ok) {
+                            allSuccessful = false;
+                        }
+                    });
+
+                    if (allSuccessful) {
+                        alert('All documents uploaded successfully.');
+                        window.location.href = '{% url "upload_documents_officer" %}';
+                    } else {
+                        alert('Some documents failed to upload.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error uploading documents:', error);
+                    alert('An error occurred while uploading documents.');
+                });
+        });
+    </script>
+{% endblock javascripts %}
